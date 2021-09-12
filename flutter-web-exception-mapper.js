@@ -33,12 +33,24 @@ function processLine(line) {
 	let objCallstackLine = tryParseCallstackLine(line);
 	if (objCallstackLine == null) {
 		// doesn't seem to be a callstack line. process as a regular line
-		scheduleLineOrPromiseForDump(line);
+		let effectiveLine = processRegularLine(line);
+		scheduleLineOrPromiseForDump(effectiveLine);
 	}
 	else {
 		let promise = processCallstackLineAndGetTranslatedLine(objCallstackLine);
 		scheduleLineOrPromiseForDump(promise);
 	}
+}
+
+function processRegularLine(line) {
+	if (line.startsWith("at ")) {
+		// this can happen in some cases, e.g. "at main.next (<anonymous>)", which is not recognized as a callstack
+		// line, but actually is (even though there's no point in processing it as such because it has no file/line/col
+		// info).
+		// though we do want to indent it.
+		return `    ${line}`;
+	}
+	return line;
 }
 
 function scheduleLineOrPromiseForDump(lineOrPromise) {
@@ -207,7 +219,7 @@ async function processCallstackLineAndGetTranslatedLine(objCallstackLine) {
 		path = `${dartFilePath}/`;
 	}
 
-	let s = `${functionText}(package:${path}${dartFile}:${dartLine}:${dartCol})`;
+	let s = `    ${functionText}(package:${path}${dartFile}:${dartLine}:${dartCol})`;
 	return s;
 }
 

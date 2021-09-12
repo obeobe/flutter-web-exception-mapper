@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+/home/user/flutter/bin/flutter-org "$@" | node /home/user/github/flutter-web-exception-mapper/flutter-web-exception-mapper.js
